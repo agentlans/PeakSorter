@@ -11,9 +11,7 @@ Description: Methods for sorting LC-MS peaks including random, intensity ranking
 Depends: R (>= 2.10)
 Imports:
     ggplot2,
-    ROCR,
-    igraph,
-    sqldf
+    ROCR
 License: GPL-3
 Encoding: UTF-8
 LazyData: true

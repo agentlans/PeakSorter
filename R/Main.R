@@ -1,6 +1,3 @@
-#library(plyr)
-#library(ROCR)
-
 #' Tools for processing LC-MS peak lists.
 #'
 #' PeakSorter provides functions for sorting LC-MS peak lists
@@ -11,10 +8,6 @@
 #' If you have a list of true positive peaks, you can use \code{\link{roc.auc}}
 #' to check the accuracy of the sort.
 "_PACKAGE"
-
-# Code to load the IDH1 example data
-#load("C:/Users/A.T/Documents/IDH1_PlasmaC18Neg_PeakSorter/Example/IDH1Data.rda")
-#devtools::use_data(idh1, idh1.true.pos)
 
 #' Idh1 knock-in mouse dataset
 #'
@@ -222,107 +215,6 @@ bin.prioritize <- function(peak.df, binwidth=0.01) {
                    c("Rt", "Mz", "Intensity", "Name")]
   rownames(temp3) <- NULL
   temp3
-#
-#   # For each bin, rank the peaks from highest to lowest intensity
-#   temp2 <- plyr::ddply(peak.df, "RtGroup", function(x) {
-#     cbind(x, data.frame(IntensityRank=rank(-x$Intensity)))
-#   })
-#   # Rank peaks from highest to lowest intensity
-#   # if they have same rank in their respective bins.
-#   # e.g. Consider set of the second most intense peaks in each bin.
-#   #   Sort that set by intensity. Repeat with the 3rd most intense...
-#   temp3 <- plyr::ddply(temp2, "IntensityRank", function(x) {
-#     x[order(-x$Intensity),]
-#   })
-#   # Return the peaks and their original rownames
-#   #rownames(temp3) <- rowname.vec[temp3$Name]
-#   rownames(temp3) <- NULL # Remove rownames
-#   temp3[,c("Rt", "Mz", "Intensity", "Name")]
-}
-
-#' Clustering peak sorting method
-#'
-#' Ranks the peaks using a clustering algorithm. Experimental.
-#'
-#' Algorithm works as follows:
-#' \enumerate{
-#' \item Find pairs of peaks that have retention time difference
-#'    below a given threshold (default 0.05 min.)
-#' \item Find clusters from the edge list constructed between peak pairs
-#' \item Peaks are ranked by decreasing intensity within each cluster
-#' \item If peaks have equal rank in their respective clusters, then
-#'    re-ranked from highest to lowest intensity
-#' }
-#'
-#' @param peak.df Peak data frame
-#' @param rt.diff Retention time difference between peak pairs in minutes
-#'   (default 0.05 min.)
-#' @return Data frame of sorted peaks
-#' @export
-#' @importFrom sqldf sqldf
-#' @importFrom igraph graph_from_edgelist cluster_walktrap membership
-#' @importFrom stats ave
-# dplyr transform
-cluster.prioritize <- function(peak.df, rt.diff = 0.05) {
-  d <- peak.df
-  # Find pairs of peaks that differ in retention time
-  # below given threshold
-  sql.query <- sprintf(
-    "SELECT a.Name AS PeakA, b.Name AS PeakB
-    FROM d AS a JOIN d AS b
-    WHERE a.Name < b.Name AND ABS(a.Rt - b.Rt) < %s",
-    rt.diff
-  )
-  close.pairs <- sqldf::sqldf(c(
-    "CREATE INDEX idx1 ON d (Rt)",
-    "CREATE INDEX idx2 ON d (Name)",
-    sql.query
-  ))
-  # Two peaks are connected by edge if retention times are close
-  g <- igraph::graph_from_edgelist(as.matrix(close.pairs), directed = FALSE)
-  g.comm <-
-    igraph::cluster_walktrap(g) # Find clusters of peaks close to each other
-  # Fill in original peak data frame with cluster info
-  d$Cluster <- igraph::membership(g.comm)[d$Name]
-
-  # Peaks that aren't in any community get put into their own cluster
-  num.na <- sum(is.na(d$Cluster))
-  d[is.na(d$Cluster), "Cluster"] <-
-    max(membership(g.comm)) + (1:num.na)
-
-  # Rank the peaks within each cluster
-  d$ClusterRank <- ave(d$Intensity, d$Cluster, FUN=rank.fun)
-  # If two peaks have same ranking in their clusters, then
-  #  re-rank by intensity
-  d$ClusterRank2 <- ave(d$Intensity, d$ClusterRank, FUN=rank.fun)
-  # Get the highest-ranking peaks in each cluster,
-  #  ordered from highest to lowest, then
-  # Get second highest-ranking ranks in each cluster...
-  temp <- d[order(d$ClusterRank, d$ClusterRank2),
-    c("Rt", "Mz", "Intensity", "Name")]
-  # Remove row names and return
-  rownames(temp) <- NULL
-  temp
-#
-#   temp <- transform(d, ClusterRank = ave(
-#     Intensity,
-#     Cluster,
-#     FUN = function(x)
-#       rank(-x, ties.method = "first")
-#   ))
-#
-#   # If peaks have same rank in their respective clusters,
-#   # then re-rank by intensity
-#   temp <- dplyr::transform(temp,
-#                     ClusterRank2 = ave(
-#                       Intensity,
-#                       ClusterRank,
-#                       FUN = function(x)
-#                         rank(-x, ties.method = "first")
-#                     ))
-#
-#   temp[with(temp, order(ClusterRank, ClusterRank2)),
-#        c("Rt", "Mz", "Intensity", "Name")]
 }
 
 #' Returns the top peaks from sorted data frame

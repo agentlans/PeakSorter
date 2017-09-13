@@ -5,6 +5,11 @@ date: "September 12, 2017"
 output: 
   html_vignette:
     toc: true
+
+vignette: >
+  %\VignetteEngine{knitr::knitr}
+  %\VignetteIndexEntry{PeakSorter vignettes}
+  %\usepackage[UTF-8]{inputenc}
 ---
 
 ```{r setup, include=FALSE}
