@@ -1,0 +1,105 @@
+---
+title: "PeakSorter vignettes"
+author: "Alan Tseng"
+date: "September 12, 2017"
+output: 
+  html_vignette:
+    toc: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Introduction
+PeakSorter is a tool to process LC-MS peak lists so that
+the most relevant peaks are at the top.
+
+There are three sorting methods implemented in PeakSorter:
+
+* Binned method (as described in unpublished manuscript) - `bin.prioritize`
+* Intensity method (sort from highest to lowest intensity) - `intensity.prioritize`
+* Random method (random order) - `random.prioritize`
+
+Basic steps for using the PeakSorter R package:
+
+1. Loading the package, your peak data, and set of true positive peaks (if desired)
+2. Sorting using one or multiple sorting methods
+3. Visualizing and validating results
+
+# Load PeakSorter
+```{r}
+library(PeakSorter)
+```
+
+# Prepare input dataset
+As an example, we'll sort the peak list from a metabolomics experiment
+with Idh1 knock-in mouse plasma. This data is included in the package.
+
+If you have your own peak list file, you can load that using the
+`read.peak.file` function.
+
+Please note:
+
+* the columns must be named exactly as such
+* retention time should be in minutes
+* peak ID must be unique
+* these criteria can be checked using the `check.peak.df` function
+
+```{r}
+# Inspect the Idh1 dataset
+head(idh1)
+
+# Validate the peak data frame
+check.peak.df(idh1)
+```
+
+Here are the peaks whose m/z match known metabolites from [HMDB](http://www.hmdb.ca/) database (true positive peaks).
+You can define your own custom set of true positive peaks.
+This variable is only required for validating the peak sorting.
+
+Note: all the peak IDs in the true positive set must appear in your peak data frame.
+```{r}
+head(idh1.true.pos)
+```
+
+# Sort the dataset using the binned method
+```{r}
+# Sort dataset using binned sort
+sorted <- bin.prioritize(idh1)
+
+# Look at the binned sorted dataset
+head(sorted)
+
+# Plot the top 100 peaks of the binned sorted dataset
+peak.plot(list(Sorted=top.peaks(sorted)))
+
+# Validate the sorted dataset
+roc.auc(sorted, idh1.true.pos)
+```
+
+# Compare different sorting methods on the same dataset
+```{r}
+# Sort the IDH1 dataset using different methods
+sorted.peaks <- list(
+  Random=random.prioritize(idh1),
+  Intensity=intensity.prioritize(idh1),
+  Binned=bin.prioritize(idh1, 0.01) # Instead of 0.01 min., you can choose your own bin width
+)
+```
+
+## Plot the sorted peaks
+```{r}
+# Also, can take the top 100 peaks from each sorted list
+top100 <- lapply(sorted.peaks, top.peaks)
+
+# Plot the top 100 peaks
+peak.plot(top100)
+```
+
+## Validate the sorted peaks
+```{r}
+# Plot the receiver operating characteristic (ROC) curves
+# of peaks sorted using different methods
+roc.plot(sorted.peaks, idh1.true.pos)
+```
