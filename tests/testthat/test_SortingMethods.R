@@ -67,13 +67,17 @@ test_that("Intensity method works", {
   expect_equal(intensity.prioritize(peak.df), peak.df.sorted2)
 })
 
+# For the following tests, we compare the sequence of intensities only.
+# It's possible that the top peaks in different bins can have the same intensity.
+# In that case, there is no a priori reason to rank one peak over the other.
 test_that("Binned method works with different bin widths", {
   # Default settings
-  expect_equal(bin.prioritize(peak.df, 0.5), peak.df.sorted)
+  expect_equal(bin.prioritize(peak.df, 0.5)$Intensity, peak.df.sorted$Intensity)
   # Smaller bin width
-  expect_equal(bin.prioritize(peak.df, 0.3), peak.df.sorted2)
+  expect_equal(bin.prioritize(peak.df, 0.3)$Intensity, peak.df.sorted2$Intensity)
   # One big bin. Row names don't match.
-  expect_equal(bin.prioritize(peak.df, 1), intensity.prioritize(peak.df))
+  expect_equal(bin.prioritize(peak.df, 1)$Intensity, 
+               intensity.prioritize(peak.df)$Intensity)
 })
 
 test_that("Area under ROC curve calculation works", {

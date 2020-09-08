@@ -4,8 +4,12 @@
 \alias{dwell.time.boxplot}
 \title{Boxplots of dwell times of multiple peak lists}
 \usage{
-dwell.time.boxplot(peak.df.list, xlab = "Method",
-  ylab = "Dwell time (min.)", ...)
+dwell.time.boxplot(
+  peak.df.list,
+  xlab = "Method",
+  ylab = "Dwell time (min.)",
+  ...
+)
 }
 \arguments{
 \item{peak.df.list}{a list of peak data frames}

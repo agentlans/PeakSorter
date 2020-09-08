@@ -9,31 +9,6 @@
 #' to check the accuracy of the sort.
 "_PACKAGE"
 
-#' Idh1 knock-in mouse dataset
-#'
-#' Peak data frame containing peaks from untargeted LC-MS profiling
-#' of Idh1 knock-in mouse plasma on C18 column negative mode.
-#' For more details, please see (unpublished paper/thesis)
-#'
-#' @format A data frame with 5000 rows and 4 variables:
-#' \describe{
-#' \item{Rt}{Retention time in minutes}
-#' \item{Mz}{Mass to charge ratio}
-#' \item{Intensity}{Normalized intensity}
-#' \item{Name}{Unique peak ID}
-#' }
-#' @seealso \code{\link{idh1.true.pos}}
-"idh1"
-
-#' True positive peaks in the Idh1 knock-in metabolomics dataset
-#'
-#' A list of peak IDs from the Idh1 knock-in metabolomics experiment
-#' whose m/z correspond to metabolites in the HMDB database.
-#' For more details, please see (unpublished paper/thesis)
-#'
-#' @seealso \code{\link{idh1}}
-"idh1.true.pos"
-
 #' Read peak data from file
 #'
 #' Reads peak data from given text file
@@ -206,13 +181,9 @@ bin.prioritize <- function(peak.df, binwidth=0.01) {
     # If binwidth is too large, then put every peak in one bin
     peak.df$RtGroup = 1
   }
-  # Assign ranking within each group
-  peak.df$BinRank <- ave(peak.df$Intensity, peak.df$RtGroup, FUN=rank.fun)
-  # Assign ranking for peaks with same rank in each group
-  peak.df$IntensityRank <- ave(peak.df$Intensity, peak.df$BinRank, FUN=rank.fun)
-  # Select the peak columns and remove row names
-  temp3 <- peak.df[order(peak.df$BinRank, peak.df$IntensityRank),
-                   c("Rt", "Mz", "Intensity", "Name")]
+  peak_order <- binned_method_cpp_wrap(peak.df$RtGroup, peak.df$Intensity)
+  # Add 1 to index because R starts numbering from 1
+  temp3 <- peak.df[peak_order + 1, c("Rt", "Mz", "Intensity", "Name")]
   rownames(temp3) <- NULL
   temp3
 }
