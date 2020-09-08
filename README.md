@@ -9,7 +9,7 @@ Example uses:
 # Installation
 1. Download and install R version 2.10 or higher. [Link](https://www.r-project.org/)
 2. In R, run the following code to install prerequisites and this package:
-```
+```r
 # Install prerequisite packages
 install.packages(c('ggplot2', 'ROCR'))
 
@@ -25,18 +25,13 @@ Let `peak.data.frame` be a data frame where:
     - representing retention time (min.), m/z, intensity, and peak ID, respectively
 
 Then to sort the peaks using the binned method, run the following code:
-```
+```r
 sorted.list <- bin.prioritize(peak.data.frame)
 ```
 
 To view the top 10 peaks, run:
-```
+```r
 top.peaks(sorted.list, 10)
-```
-
-For more information, please see the package vignettes:
-```
-vignette("Idh1", package="PeakSorter")
 ```
 
 # License
